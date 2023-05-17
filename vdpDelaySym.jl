@@ -7,7 +7,7 @@ D = Differential(t)
 @delays τ
 
 eqs = [D(x) ~ y,
-       D(y) ~ θ*(1-(x-τ)^2)*y - (x-τ)]
+       D(y) ~ θ*(1-x(t-τ)^2*y) - x(t-τ)]
 
 @named vdpDelay = System(eqs,t)
 

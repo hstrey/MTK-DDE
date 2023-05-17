@@ -1,11 +1,17 @@
 using ModelingToolkit
+using Symbolics: unwrap
+using SymbolicUtils
+using SymbolicUtils.Code
+using ModelingToolkit: isvariable
 
 @parameters θ, ϕ, τ
 @variables t x(t) y(t)
 D = Differential(t)
 
 eqs = [D(x) ~ y,
-       D(y) ~ θ*(1-(x-τ)^2)*y - (x-τ)]
+       D(y) ~ θ*(1-x(t-τ)^2*y) - x(t-τ)]
+
+@named vdpDelayODE = ODESystem(eqs,t)
 
 @named vdpDelay = DDESystem(eqs,t,lags = [τ])
 
