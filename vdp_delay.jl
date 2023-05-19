@@ -11,10 +11,10 @@ end
 
 h(p,t) = ones(2)
 
-lags = [0.5]
+lags = [0.1]
 p = [1.0,1.0,lags[1]]
 tspan = (0.0,100.0)
-u0 = [1.0,1.0,1.0]
+u0 = [0.1,0.1]
 
 prob = DDEProblem(vdpDelay!, u0, h, tspan, p; constant_lags = lags)
 
