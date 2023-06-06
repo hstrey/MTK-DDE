@@ -15,14 +15,14 @@ end
 function noise(du, u, p, t)
     du[1] = 1.0
     du[2] = 1.0
-    du[3] = 1.0
-    du[4] = 1.0
+    du[3] = 0.1
+    du[4] = 0.1
 end
 
-p = [0.0,0.0,-100,-100,-0.2,-0.2]
-u0 = [0,0,0,0]
+p = [-2.0,-2.0,-10,-10,-0.2,-0.2]
+u0 = [0,0,-2,-2]
 
 prob = SDEProblem(two_nodes,noise, u0,(0,100),p)
 sol = solve(prob,EM(),dt=0.1)
 
-plot(sol.t,sol[1,:])
+plot(sol.t,sol[2,:])
