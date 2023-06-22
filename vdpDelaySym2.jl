@@ -17,7 +17,7 @@ y = y(t)
 eqs = [D(x) ~ histy,
        D(y) ~ θ*(1-histx1^2)*y - histx2]
 
-@named vdpDelayODE = ODESystem(eqs,t,[x,y],[θ, τ1,τ2])
+@named vdpDelayODE = System(eqs,t,[x,y],[θ, τ1,τ2])
 
 iv = unwrap(only(independent_variables(vdpDelayODE)))
 eqs = equations(vdpDelayODE)
@@ -62,10 +62,21 @@ func = Func([out, DestructuredArgs(states(vdpDelayODE)), hh, DestructuredArgs(pa
             [], body)
 my_func_expr = toexpr(func)
 my_func = eval(my_func_expr)
+
+u0map = [
+           x => 0.1,
+           y => 0.1
+        ]
        
-tspan = [0.0, 20]
+parammap = [
+           θ => 1.0,
+           τ1 => 0.1,
+           τ2 => 0.01
+           ]
+
+tspan = (0.0, 20.0)
 h(p, t) = ones(2)
-prob = DDEProblem(my_func,[0.1 0.1],h,(0,100),[1.0 0.1 0.1 0.01];constant_lags = [0.1,0.01])
+prob = DDEProblem(vdpDelayODE,u0map,h,(0,100),parammap;constant_lags = [0.1,0.01])
 
 alg = MethodOfSteps(Rodas4())
 sol = solve(prob, alg)

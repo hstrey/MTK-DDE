@@ -15,11 +15,14 @@ Implementation has the following steps:
 
 MTK steps to turn symbolic system into ODEProblem
 
+MTK.abstractodesystem.jl
 - call ODEProblem on ODESystem
 - call process_DEProblem(constructor = ODEFunction, ...)
 - call get_u0_p
 - construct function by calling ODEfunction
+Symbolics.build_function.jl
 - call build_function
+
 
 The challenge is to turn a symbolic list of states into u[1..n] then calculate the du[1..n] with parameters from a symbolic dictionary with u0 also from a dictionary.
 

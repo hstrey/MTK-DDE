@@ -19,10 +19,10 @@ function noise(du, u, p, t)
     du[4] = 0.1
 end
 
-p = [-2.0,-2.0,-10,-10,-0.2,-0.2]
-u0 = [0,0,-2,-2]
+p = [-1.0,-2.0,-10,-10,-0.2,-0.2]
+u0 = [0,0,-1,-2]
 
 prob = SDEProblem(two_nodes,noise, u0,(0,100),p)
-sol = solve(prob,EM(),dt=0.1)
+sol = solve(prob,SRIW1())
 
-plot(sol.t,sol[2,:])
+plot(sol)
