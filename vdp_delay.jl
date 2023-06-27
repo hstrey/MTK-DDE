@@ -3,7 +3,7 @@ using Plots
 
 function vdpDelay!(du,u,h,p,t)
     x1,x2 = u
-    θ,ϕ,tau = p
+    θ,tau = p
     x1hist = h(p,t-tau)[1]
     du[1] = x2
     du[2] = θ*(1-x1hist^2)*x2 - x1hist

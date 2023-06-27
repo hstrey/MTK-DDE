@@ -1,11 +1,11 @@
-using ModelingToolkit
+using ModelingToolkit, DifferentialEquations, Plots
+using ModelingToolkit: process_DEProblem, process_events, has_discrete_subsystems, build_explicit_observed_function, get_discrete_subsystems, get_metadata, get_iv, filter_kwargs, get_u0_p
+using SciMLBase: StandardODEProblem
 using Symbolics: unwrap
 using SymbolicUtils
 using SymbolicUtils.Code
 using ModelingToolkit: isvariable
-using DifferentialEquations
-using Plots
-using ModelingToolkit: process_DEProblem, process_events, has_discrete_subsystems, build_explicit_observed_function, get_discrete_subsystems, get_metadata, get_iv, filter_kwargs, get_u0_p
+using LinearAlgebra: I
 
 function generate_ddefunction(sys::ModelingToolkit.AbstractODESystem, dvs = states(sys),
     ps = parameters(sys); kwargs...)
@@ -43,7 +43,7 @@ function generate_ddefunction(sys::ModelingToolkit.AbstractODESystem, dvs = stat
                                                 stidx[1], type = Real)),))
         end
     end
-
+    @show eqs2
     out = Sym{Any}(:out)
     body = SetArray(false, out, getfield.(eqs2, :rhs))
     func = Func([out, DestructuredArgs(dvs), hh, DestructuredArgs(ps), iv],
@@ -52,37 +52,48 @@ function generate_ddefunction(sys::ModelingToolkit.AbstractODESystem, dvs = stat
     eval(my_func_expr)
 end
 
-@parameters θ τ1 τ2
-@variables t x(..) y(..)
+@variables t
 D = Differential(t)
-histx1 = x(t-τ1)
-histy1 = y(t-τ2)
-x = x(t)
-y = y(t)
-eqs = [D(x) ~ histy1,
-       D(y) ~ θ*(1-histx1^2)*y - x]
 
-@named vdpDelayODE = System(eqs,t,[x,y],[θ, τ1,τ2])
+function van_der_pol(;name, θ=1.0, τ=0.01)
+    @parameters θ=θ τ=τ
+    @variables x(..) y(..) jcn(t)=0.0
+    histx1 = x(t-τ)
+    x = x(t)
+    y = y(t)
+    eqs = [D(x) ~ y + jcn,
+           D(y) ~ θ*(1-histx1^2)*y - x]
 
-u0map = [
-           x => 0.1,
-           y => 0.1
-        ]
-       
-parammap = [
-           θ => 1.0,
-           τ1 => 0.1,
-           τ2 => 0.01
-           ]
+    return System(eqs, t, [x,y,jcn], [θ,τ]; name=name)
+end
 
+@named VP1 = van_der_pol()
+@named VP2 = van_der_pol()
+
+st1 = states.((VP1,), states(VP1))
+st2 = states.((VP2,), states(VP2))
+
+eqs = [VP1.jcn ~ VP2.x,
+        VP2.jcn ~ VP1.x]
+
+sys = [VP1,VP2]
+
+@named connected = System(eqs,t)
+@named coupledVP = compose(System(eqs,t;name=:connected),sys)
+
+# run structural simplify with consistency check off
+coupledVPs = structural_simplify(coupledVP; check_consistency=false)
+eqs = equations(coupledVPs)
+sts = states(coupledVPs)[1:4]
+iv = independent_variables(coupledVPs)
+ps = parameters(coupledVPs)
+
+f = generate_ddefunction(coupledVPs2)
 tspan = (0.0, 20.0)
-h(p, t) = ones(2)
+h(p, t) = ones(4)
 
-f = generate_ddefunction(vdpDelayODE)
-u0, p, defs = get_u0_p(vdpDelayODE, u0map, parammap)
-prob = DDEProblem(f,u0,h,tspan,p;constant_lags = [0.1,0.01])
-
+prob = DDEProblem(f,[0.5,0.4,0.5,0.4],h,tspan,[1.0,0.01,1.0,0.01];constant_lags = [0.01,0.01])
 alg = MethodOfSteps(Tsit5())
 sol = solve(prob, alg)
 
-plot(sol)
+plot(sol, title="Coupled van der Pol DDEs")

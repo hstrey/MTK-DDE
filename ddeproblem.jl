@@ -1,6 +1,6 @@
 using DiffEqBase, SciMLBase
 using ModelingToolkit
-using ModelingToolkit: process_DEProblem, process_events, has_discrete_subsystems, build_explicit_observed_function, get_discrete_subsystems, get_metadata, get_iv, 
+using ModelingToolkit: process_DEProblem, process_events, has_discrete_subsystems, build_explicit_observed_function, get_discrete_subsystems, get_metadata, get_iv, filter_kwargs, get_u0_p
 using SciMLBase: StandardODEProblem
 using Symbolics: unwrap
 using SymbolicUtils
